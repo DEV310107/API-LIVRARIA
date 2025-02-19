@@ -98,16 +98,19 @@ def delete_livro(id):
     del livros[id]
     return livros
 
-############################################## METODO POST #########################################################
+############################################## METODO PUT #########################################################
 
-@app.route("/add_livro", methods=["post"])
-def add_livro():
+@app.route("/up_livro", methods=["put"])
+def up_livros():
     data = request.get_json()
-    livros[f"{len(livros) + 1}"] = data
-    return livros
+    if data["id"] in livros:
+        for chave, valor in data.items():
+            if chave != "id":
+                livros[data["id"]][chave] = valor
+        return jsonify(livros), 200
+    else:
+        
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
 
-############################################## METODO POST #########################################################
+#######################################################################################################
 
