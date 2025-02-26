@@ -1,8 +1,10 @@
-from flask import Flask, request
+# Importando as bibliotecas necessárias do Flask
+from flask import Flask, request, jsonify
 
+# Criando a aplicação Flask
 app = Flask(__name__)
 
-# Dicionário de livros
+####################### Dicionário que representa um banco de dados fictício de livros #######################
 livros = {
     "1": {
         "título": "O Segredo do Vale",
@@ -27,7 +29,7 @@ livros = {
     }
 }
 
-# Dicionário de autores
+# Dicionário que representa um banco de dados fictício de autores
 autores = {
     "1": {
         "nome": "Clara Mendes",
@@ -49,7 +51,7 @@ autores = {
     }
 }
 
-# Dicionário de clientes
+# Dicionário que representa um banco de dados fictício de clientes
 clientes = {
     "1": {
         "nome": "João Silva",
@@ -73,44 +75,79 @@ clientes = {
         "livros_comprados": ["3"]
     }
 }
-
-########################################### METODO GET ############################################################
-
-@app.route("/livro", methods=["get"])
+#################################### GET ###############################################
+# Rota para obter a lista de todos os livros
+@app.route("/livro", methods=["GET"])  # Define um endpoint acessível via método GET
 def livro():
-    return livros
+    return jsonify(livros), 200  # Retorna a lista de livros em formato JSON com status HTTP 200 (OK)
 
-@app.route("/cliente", methods=["get"])
+# Rota para obter a lista de todos os clientes
+@app.route("/cliente", methods=["GET"])  # Define um endpoint acessível via método GET
 def cliente():  
-    return clientes
+    return jsonify(clientes), 200  # Retorna a lista de clientes em formato JSON com status HTTP 200 (OK)
 
-@app.route("/autor", methods=["get"])
+# Rota para obter a lista de todos os autores
+@app.route("/autor", methods=["GET"])  # Define um endpoint acessível via método GET
 def autor():
-    return autores
+    return jsonify(autores), 200  # Retorna a lista de autores em formato JSON com status HTTP 200 (OK)
 
+#################################### DELETE ###############################################
 
-########################################### METODO DELETE ############################################################
-
-@app.route("/delete_livro/<string:id>", methods=["delete"])
+# Rota para deletar um livro pelo ID
+@app.route("/delete_livro/<string:id>", methods=["DELETE"])  # Define um endpoint acessível via método DELETE
 def delete_livro(id):
-    print(f"\n\n--->> {id}\n\n")
-    print(livros[id])    
-    del livros[id]
-    return livros
+    del livros[id]  # Remove o livro correspondente ao ID fornecido
+    return jsonify(livros), 200  # Retorna a lista atualizada de livros com status HTTP 200 (OK)
 
-############################################## METODO PUT #########################################################
+#################################### POST ###############################################
 
-@app.route("/up_livro", methods=["put"])
-def up_livros():
+# Rota para adicionar um novo livro
+@app.route("/add_livro", methods=["POST"])  # Define um endpoint acessível via método POST
+def add_livro():
+    data = request.get_json()  # Obtém os dados do corpo da requisição em formato JSON
+    livros[f"{len(livros) + 1}"] = data  # Adiciona o novo livro ao dicionário, gerando um novo ID
+    return jsonify(livros), 200  # Retorna a lista atualizada de livros com status HTTP 200 (OK)
+
+#################################### PUT ###############################################
+
+# Rota para atualizar um livro existente
+@app.route("/up_livro", methods=["PUT"])  # Define um endpoint acessível via método PUT
+def up_livro():
+    data = request.get_json()  # Obtém os dados do corpo da requisição em formato JSON
+    if data["id"] in livros:  # Verifica se o livro existe no dicionário
+        for chave, valor in data.items():  # Percorre os campos enviados na requisição
+            if chave != "id":  # Garante que o ID não seja alterado
+                livros[data["id"]][chave] = valor  # Atualiza os campos do livro
+        return jsonify(livros), 200  # Retorna a lista atualizada de livros com status HTTP 200 (OK)
+    else:
+        return jsonify({"erro": "Livro não encontrado"}), 404  # Retorna um erro caso o livro não seja encontrado
+
+@app.route("/up_livros", methods=["PUT"])
+def up_autores():
     data = request.get_json()
-    if data["id"] in livros:
+    if data["id"] in autores:
         for chave, valor in data.items():
             if chave != "id":
-                livros[data["id"]][chave] = valor
+                autores[data["id"]][chave] = valor
         return jsonify(livros), 200
     else:
-        
+        return jsonify({"erro": "Livro não encontrado"}), 404
+    
+
+@app.route("/up_clientes", methods=["PUT"])
+def up_clientes():
+    data = request.get_json()
+    if data["id"] in clientes:
+        for chave, valor in data.items():
+            if chave != "id":
+                clientes[data["id"]][chave] = valor
+        return jsonify(livros), 200
+    else:
+        return jsonify({"erro": "livro não encontrado"}), 404
+
+###########################################################################################
 
 
-#######################################################################################################
-
+# Inicia a aplicação Flask
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0')  # Executa o servidor Flask no modo debug e disponível para toda a rede
